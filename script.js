@@ -13,7 +13,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('./service-worker.js')
-      .then(reg => console.log('[SW] Registrado com escopo:', reg.scope))
       .catch(err => console.error('[SW] Falha no registro:', err));
   });
 }
@@ -29,6 +28,30 @@ const btnInstallConfirm = document.getElementById('btn-install-confirm');
 const installDialogTitle = document.getElementById('install-dialog-title');
 const installDialogText = document.getElementById('install-dialog-text');
 let installStatusTimer = null;
+
+// -- Dialogo de confirmacao de remocao ----------------
+const confirmDialog  = document.getElementById('confirm-dialog');
+const confirmOverlay = document.getElementById('confirm-overlay');
+const confirmMsg     = document.getElementById('confirm-dialog-msg');
+const btnConfirmCancel = document.getElementById('btn-confirm-cancel');
+const btnConfirmOk     = document.getElementById('btn-confirm-ok');
+let _confirmResolve = null;
+
+function openConfirmDialog(entryName) {
+  confirmMsg.textContent = '"' + entryName + '" sera removido permanentemente. Essa acao nao pode ser desfeita.';
+  confirmDialog.hidden = false;
+  btnConfirmOk.focus();
+  return new Promise((resolve) => { _confirmResolve = resolve; });
+}
+
+function closeConfirmDialog(result) {
+  confirmDialog.hidden = true;
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+btnConfirmCancel.addEventListener('click', () => closeConfirmDialog(false));
+btnConfirmOk.addEventListener('click',     () => closeConfirmDialog(true));
+confirmOverlay.addEventListener('click',   () => closeConfirmDialog(false));
 
 // Garante o estado inicial correto mesmo com cache antigo ou restauracao de pagina.
 installDialog.hidden = true;
@@ -101,7 +124,6 @@ async function triggerInstallPrompt() {
 
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
-  console.log('[PWA] Resultado da instalacao:', outcome);
 
   deferredPrompt = null;
   btnInstall.hidden = true;
@@ -121,8 +143,9 @@ btnInstallConfirm.addEventListener('click', triggerInstallPrompt);
 installOverlay.addEventListener('click', closeInstallDialog);
 
 window.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !installDialog.hidden) {
-    closeInstallDialog();
+  if (event.key === 'Escape') {
+    if (!installDialog.hidden)  closeInstallDialog();
+    if (!confirmDialog.hidden)  closeConfirmDialog(false);
   }
 });
 
@@ -130,7 +153,7 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   btnInstall.hidden = true;
   closeInstallDialog();
-  showInstallStatus('Diario de Bordo instalado com sucesso. Agora ele pode ser aberto como aplicativo.', 'success');
+  showInstallStatus('Diario de Bordo instalado com sucesso. Agora ele pode ser aberto como aplicativo.', 'success', 5000);
 });
 
 // -- 3. Persistencia - localStorage ----------------------------
@@ -258,8 +281,7 @@ function formatDate(dateStr) {
 }
 
 // -- 6. Ordenacao por proximidade de data ----------------------
-function sortByProximity(entries) {
-  const todayStr = new Date().toISOString().split('T')[0];
+function sortByProximity(entries, todayStr) {
   return [...entries].sort((a, b) => {
     const aFuture = a.date >= todayStr;
     const bFuture = b.date >= todayStr;
@@ -269,8 +291,7 @@ function sortByProximity(entries) {
   });
 }
 
-function dateLabel(dateStr) {
-  const todayStr = new Date().toISOString().split('T')[0];
+function dateLabel(dateStr, todayStr) {
   if (dateStr === todayStr) return 'Hoje';
   const msPerDay = 86400000;
   const diff = Math.round(
@@ -283,8 +304,7 @@ function dateLabel(dateStr) {
 }
 
 // -- 7. Renderizacao com paginacao -----------------------------
-function buildCardHtml(entry) {
-  const todayStr   = new Date().toISOString().split('T')[0];
+function buildCardHtml(entry, todayStr) {
   const isPast     = entry.date < todayStr;
   const isToday    = entry.date === todayStr;
   const badgeClass = isToday ? 'badge--today' : isPast ? 'badge--past' : 'badge--future';
@@ -294,7 +314,7 @@ function buildCardHtml(entry) {
     +   '<h3 class="entry-title">' + escapeHtml(entry.title) + '</h3>'
     +   '<div class="entry-date-group">'
     +     '<time class="entry-date" datetime="' + escapeHtml(entry.date) + '">' + formatDate(entry.date) + '</time>'
-    +     '<span class="entry-badge ' + badgeClass + '">' + dateLabel(entry.date) + '</span>'
+    +     '<span class="entry-badge ' + badgeClass + '">' + dateLabel(entry.date, todayStr) + '</span>'
     +   '</div>'
     + '</div>'
     + '<p class="entry-description">' + escapeHtml(entry.description) + '</p>'
@@ -306,7 +326,8 @@ function buildCardHtml(entry) {
 }
 
 function renderEntries() {
-  const entries = sortByProximity(getEntries());
+  const todayStr = new Date().toISOString().split('T')[0];
+  const entries = sortByProximity(getEntries(), todayStr);
   const total   = entries.length;
 
   entriesCount.textContent = total > 0 ? '(' + total + ')' : '';
@@ -337,7 +358,7 @@ function renderEntries() {
       + '</div>';
   }
 
-  entriesList.innerHTML = visible.map(buildCardHtml).join('') + footerHtml;
+  entriesList.innerHTML = visible.map(e => buildCardHtml(e, todayStr)).join('') + footerHtml;
 
   document.getElementById('btn-show-more')?.addEventListener('click', () => {
     visibleCount = Math.min(visibleCount + PAGE_SIZE, total);
@@ -395,13 +416,14 @@ form.addEventListener('submit', (e) => {
 });
 
 // -- 9. Acoes nos cards via delegacao --------------------------
-entriesList.addEventListener('click', (e) => {
+entriesList.addEventListener('click', async (e) => {
   const btnDel = e.target.closest('.btn-delete');
   if (btnDel) {
     const { id } = btnDel.dataset;
     const card   = btnDel.closest('.entry-card');
     const name   = card?.querySelector('.entry-title')?.textContent ?? 'esta entrada';
-    if (window.confirm('Deseja remover "' + name + '"?')) {
+    const confirmed = await openConfirmDialog(name);
+    if (confirmed) {
       if (editingId === id) exitEditMode();
       removeEntry(id);
       if (visibleCount > PAGE_SIZE) visibleCount = Math.max(PAGE_SIZE, visibleCount - 1);

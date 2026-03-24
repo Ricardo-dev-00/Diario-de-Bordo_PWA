@@ -6,6 +6,7 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
+  "categories": ["productivity"],
   "theme_color": "#1a1a2e",
   "background_color": "#f0f4f8",
   "scope": "./",

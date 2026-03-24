@@ -1,7 +1,6 @@
 /* ── Variáveis de design ───────────────────────────────── */
 :root {
   --color-primary:     #1a1a2e;
-  --color-secondary:   #16213e;
   --color-accent:      #0f3460;
   --color-danger:      #e94560;
   --color-text:        #2d3748;
@@ -36,7 +35,6 @@
 
 body[data-theme="dark"] {
   --color-primary:     #0f172a;
-  --color-secondary:   #111827;
   --color-accent:      #38bdf8;
   --color-danger:      #fb7185;
   --color-text:        #e5eef8;
@@ -84,6 +82,12 @@ body {
   display: flex;
   flex-direction: column;
   line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+button {
+  touch-action: manipulation; /* remove delay de 300ms no tap */
 }
 
 /* ── Header ───────────────────────────────────────────── */
@@ -295,6 +299,77 @@ header h1 {
   transform: scale(.98);
 }
 
+/* ── Diálogo de confirmação de remoção ──────────────────── */
+.confirm-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, .56);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-panel {
+  position: relative;
+  width: min(100%, 400px);
+  background: var(--color-card);
+  color: var(--color-text);
+  border-radius: 20px;
+  padding: 2rem 1.5rem 1.5rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-hover);
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 2.5rem;
+  margin-bottom: .75rem;
+  line-height: 1;
+}
+
+.confirm-panel h2 {
+  font-size: 1.3rem;
+  color: var(--color-heading);
+  margin-bottom: .5rem;
+}
+
+.confirm-dialog-msg {
+  font-size: .9375rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  word-break: break-word;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.btn-confirm-delete {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: .75rem 1.25rem;
+  font-size: .9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .1s, background .2s, opacity .2s;
+  background: var(--color-danger);
+  color: #fff;
+  min-width: 110px;
+}
+
+.btn-confirm-delete:hover  { opacity: .88; }
+.btn-confirm-delete:active { transform: scale(.98); }
+
 /* ── Main layout ──────────────────────────────────────── */
 main {
   max-width: 900px;
@@ -359,7 +434,7 @@ textarea {
   color: var(--color-text);
   background: var(--color-bg);
   transition: border-color .2s, box-shadow .2s;
-  resize: vertical;
+  resize: none;
 }
 
 body[data-theme="dark"] input[type="date"] {
@@ -544,11 +619,14 @@ textarea:focus {
   background: transparent;
   color: var(--color-accent);
   border: 1.5px solid var(--color-accent);
-  padding: .35rem .875rem;
+  padding: .5rem 1rem;
   border-radius: 6px;
   font-size: .8125rem;
   font-weight: 600;
   cursor: pointer;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   transition: background .2s, color .2s;
 }
 
@@ -561,11 +639,14 @@ textarea:focus {
   background: transparent;
   color: var(--color-danger);
   border: 1.5px solid var(--color-danger);
-  padding: .35rem .875rem;
+  padding: .5rem 1rem;
   border-radius: 6px;
   font-size: .8125rem;
   font-weight: 600;
   cursor: pointer;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   transition: background .2s, color .2s;
 }
 
@@ -661,6 +742,10 @@ footer {
   }
 
   .install-dialog-actions > * {
+    width: 100%;
+  }
+
+  .confirm-dialog-actions > * {
     width: 100%;
   }
 

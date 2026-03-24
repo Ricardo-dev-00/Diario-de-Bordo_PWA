@@ -3,7 +3,7 @@
    Estratégia: Cache-First para assets estáticos.
    ============================================================ */
 
-const CACHE_NAME  = 'diario-bordo-v8';
+const CACHE_NAME  = 'diario-bordo-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   './manifest.json',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png',
+  './icons/tela-app-diario-de-bordo.png',
 ];
 
 // ── Install: pré-cacheia os assets essenciais ──────────────────
