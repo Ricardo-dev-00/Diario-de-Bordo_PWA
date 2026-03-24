@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="description" content="Diário de Bordo – Registre suas atividades diárias" />
+    <title>Diário de Bordo</title>
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-theme="light">
+    <header>
+      <div class="header-content">
+        <h1>📔 Diário de Bordo</h1>
+        <div class="header-actions">
+          <button id="btn-theme" class="btn-theme" type="button" aria-label="Alternar tema">
+            🌙 Modo escuro
+          </button>
+          <button id="btn-install" class="btn-install" hidden aria-label="Instalar aplicativo">
+            ⬇ Instalar App
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div id="install-status" class="install-status" hidden aria-live="polite"></div>
+
+    <main>
+      <!-- Formulário de nova entrada -->
+      <section class="form-section" aria-label="Nova entrada">
+        <h2 id="form-heading">Nova Entrada</h2>
+        <form id="form-entry" novalidate>
+          <div class="form-group">
+            <label for="input-title">Título</label>
+            <input
+              type="text"
+              id="input-title"
+              placeholder="Ex.: Reunião de planejamento"
+              maxlength="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="input-date">Data</label>
+            <input type="date" id="input-date" required />
+          </div>
+
+          <div class="form-group">
+            <label for="input-description">Descrição</label>
+            <textarea
+              id="input-description"
+              placeholder="Descreva a atividade do dia…"
+              rows="5"
+              maxlength="1000"
+              required
+            ></textarea>
+          </div>
+
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+
+          <button type="submit" id="btn-submit" class="btn-primary">＋ Adicionar Entrada</button>
+          <button type="button" id="btn-cancel-edit" class="btn-cancel" hidden>Cancelar Edição</button>
+        </form>
+      </section>
+
+      <!-- Lista de entradas -->
+      <section class="entries-section" aria-label="Registros">
+        <h2>
+          Registros
+          <span id="entries-count" class="entries-count" aria-live="polite"></span>
+        </h2>
+        <div id="entries-list" class="entries-list">
+          <p class="empty-message">Nenhuma entrada registrada ainda.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Diário de Bordo &copy; 2026 — Funciona offline</p>
+    </footer>
+
+    <div id="install-dialog" class="install-dialog" hidden>
+      <div id="install-overlay" class="install-overlay"></div>
+      <section
+        class="install-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="install-dialog-title"
+        aria-describedby="install-dialog-text"
+      >
+        <p class="install-kicker">Instalação do app</p>
+        <h2 id="install-dialog-title">Instalar Diário de Bordo</h2>
+        <p id="install-dialog-text" class="install-dialog-text">
+          O navegador vai abrir a confirmação de instalação. Depois disso, o app poderá ser usado direto da tela inicial.
+        </p>
+        <ul class="install-benefits">
+          <li>Acesso rápido pela tela inicial</li>
+          <li>Uso offline com seus registros salvos</li>
+          <li>Experiência semelhante a aplicativo nativo</li>
+        </ul>
+        <div class="install-dialog-actions">
+          <button type="button" id="btn-install-cancel" class="btn-cancel-dialog">Agora não</button>
+          <button type="button" id="btn-install-confirm" class="btn-install-confirm">Continuar instalação</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Diálogo de confirmação de remoção -->
+    <div id="confirm-dialog" class="confirm-dialog" hidden>
+      <div id="confirm-overlay" class="confirm-overlay"></div>
+      <section
+        class="confirm-panel"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-msg"
+      >
+        <div class="confirm-icon">🗑️</div>
+        <h2 id="confirm-dialog-title">Remover entrada?</h2>
+        <p id="confirm-dialog-msg" class="confirm-dialog-msg"></p>
+        <div class="confirm-dialog-actions">
+          <button type="button" id="btn-confirm-cancel" class="btn-cancel-dialog">Cancelar</button>
+          <button type="button" id="btn-confirm-ok" class="btn-confirm-delete">Remover</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
